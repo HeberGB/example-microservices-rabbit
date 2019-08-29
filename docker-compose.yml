@@ -1,0 +1,54 @@
+version: "3.5"
+services:
+  ping:
+    build:
+      context: ./ping
+      dockerfile: Dockerfile.dev
+    container_name: ping
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./ping/src:/home/node/app/src
+      - ./ping/nodemon.json:/home/node/app/nodemon.json
+      - ./ping/tsconfig.json:/home/node/app/tsconfig.json
+      - ./ping/nest-cli.json:/home/node/app/nest-cli.json
+      - ./ping/.env:/home/node/app/.env
+    ports:
+      - "3000:3000"
+    command: npm run start:dev
+
+  pong:
+    build:
+      context: ./pong
+      dockerfile: Dockerfile.dev
+    container_name: pong
+    depends_on:
+      - rabbitmq
+    volumes:
+      - ./pong/src:/home/node/app/src
+      - ./pong/nodemon.json:/home/node/app/nodemon.json
+      - ./pong/tsconfig.json:/home/node/app/tsconfig.json
+      - ./pong/nest-cli.json:/home/node/app/nest-cli.json
+      - ./pong/.env:/home/node/app/.env
+    ports:
+      - "3001:3000"
+    command: npm run start:dev
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    hostname: "rabbitmq"
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    healthcheck:
+      timeout: 5s
+      interval: 5s
+      retries: 5
+      test:
+        - "CMD"
+        - "rabbitmqctl"
+        - "status"
+    volumes:
+      - ./rabbitmq/definitions.json:/opt/definitions.json:ro
+      - ./rabbitmq/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
